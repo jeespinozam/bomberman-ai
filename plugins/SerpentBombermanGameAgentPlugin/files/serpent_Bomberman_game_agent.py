@@ -42,7 +42,7 @@ class SerpentBombermanGameAgent(GameAgent):
 		self.spriteWO = self.game.sprites.get("SPRITE_GAME_WON")
 		#self.sprite.image_data
 		self.printer = TerminalPrinter()
-		self.max_runs = 5;
+		self.max_attempts = 5;
 
 	def setup_play(self):
 		game_inputs = {
@@ -92,7 +92,7 @@ class SerpentBombermanGameAgent(GameAgent):
 			KeyboardKey.KEY_RIGHT,
 			KeyboardKey.KEY_SPACE]
 
-		if(self.current_attempts != sel.max_runs):
+		if(self.current_attempts != sel.max_attempts):
 			#game over?
 			sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
 
