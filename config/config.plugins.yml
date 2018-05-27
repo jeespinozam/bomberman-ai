@@ -1,0 +1,8 @@
+SerpentBombermanGameAgentPlugin:
+  frame_handler: PLAY
+SerpentBombermanGamePlugin:
+  fps: 2
+SerpentStickGameAgentPlugin:
+  frame_handler: PLAY
+SerpentStickGamePlugin:
+  fps: 2
