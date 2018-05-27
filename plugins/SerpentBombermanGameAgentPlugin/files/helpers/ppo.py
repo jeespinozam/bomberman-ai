@@ -45,32 +45,49 @@ class SerpentPPO:
         ]
 
         self.agent = PPOAgent(
-            states_spec=states_spec,
-            actions_spec=actions_spec,
+            states=states_spec,
+            actions=actions_spec,
+            network=network_spec,
             batched_observe=2560,
-            scope="ppo",
-            summary_spec=summary_spec,
-            network_spec=network_spec,
-            device=None,
-            session_config=None,
-            saver_spec=None,
-            distributed_spec=None,
+            batching_capacity=1000,
+            # BatchAgent
+            #keep_last_timestep=True,
+            # PPOAgent
+            step_optimizer=dict(
+                type='adam',
+                learning_rate=1e-3
+            ),
+            optimization_steps=10,
+            # Model
+            scope='ppo',
             discount=0.97,
-            variable_noise=None,
-            states_preprocessing_spec=None,
-            explorations_spec=None,
-            reward_preprocessing_spec=None,
-            distributions_spec=None,
+            # DistributionModel
+            distributions=None,
             entropy_regularization=0.01,
-            batch_size=2560,
-            keep_last_timestep=True,
+            # PGModel
             baseline_mode=None,
             baseline=None,
             baseline_optimizer=None,
             gae_lambda=None,
+            # PGLRModel
             likelihood_ratio_clipping=None,
-            step_optimizer=None,
-            optimization_steps=10
+            #summary_spec=summary_spec,
+            #distributed_spec=None,
+            # More info
+            device=None,
+            #session_config=None,
+            saver=None,
+            variable_noise=None,
+            #states_preprocessing_spec=None,
+            #explorations_spec=None,
+            #reward_preprocessing_spec=None,
+
+            summarizer=None,
+            execution=None,
+            actions_exploration=None,
+            update_mode=None,
+            memory=None,
+            subsampling_fraction=0.1
         )
 
     def generate_action(self, game_frame_buffer):

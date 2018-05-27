@@ -25,7 +25,7 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
     @property
     def screen_regions(self):
         regions = {
-            "GAME_REGION": (0, 0, 480, 546), ##545x416
+            "GAME_REGION": (0, 0, 480, 549), ##545x416
             "GAME_OVER_REGION": (160,160, 225, 404),
             "WIN_REGION": (175,130, 220, 421),
         }

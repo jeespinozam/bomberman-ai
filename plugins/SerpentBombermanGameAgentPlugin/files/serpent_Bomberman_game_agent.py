@@ -1,7 +1,7 @@
 import time
 import os
 import pickle
-#import serpent.cv
+import serpent.cv
 
 import numpy as np
 import collections
@@ -34,20 +34,15 @@ class SerpentBombermanGameAgent(GameAgent):
 		self.frame_handler_setups["PLAY"] = self.setup_play
 
 		self.value = None
-		print("Sprites")
-		print(type(self.game.sprites))
-		print("game")
-		print(self.game)
-		print("game type")
-		print(type(self.game))
-		for i,value in enumerate(self.game.sprites):
-			if(i==13):
-				print(value)
-				self.value = value
+		#print("Buffer")
+		#print(type(self.game_frame_buffer))
+		#print(np.stack(self.game_frame_buffer))
+
 		self.spriteGO = self.game.sprites.get("SPRITE_GAME_OVER")
 		self.spriteWO = self.game.sprites.get("SPRITE_GAME_WON")
 		#self.sprite.image_data
 		self.printer = TerminalPrinter()
+		self.max_runs = 5;
 
 	def setup_play(self):
 		game_inputs = {
@@ -59,10 +54,10 @@ class SerpentBombermanGameAgent(GameAgent):
 		}
 		self.game_inputs = game_inputs
 
-		# self.ppo_agent = SerpentPPO(
-		# frame_shape=(125, 112, 4),
-		# game_inputs=game_inputs
-		# )
+		self.ppo_agent = SerpentPPO(
+		frame_shape= (480, 549, 4),
+		game_inputs=game_inputs
+		)
 
 		self.first_run = True
 		self.game_over = False
@@ -97,28 +92,42 @@ class SerpentBombermanGameAgent(GameAgent):
 			KeyboardKey.KEY_RIGHT,
 			KeyboardKey.KEY_SPACE]
 
-		#game over?
-		sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
+		if(self.current_attempts != sel.max_runs):
+			#game over?
+			sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
 
-		sprite_locator = SpriteLocator()
-		locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-		print(locationGO)
+			sprite_locator = SpriteLocator()
+			locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+			#print(locationGO)
 
-		#won game?
-		sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
-		sprite_locator = SpriteLocator()
-		locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-		print(locationWO)
+			#won game?
+			sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
+			sprite_locator = SpriteLocator()
+			locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+			#print(locationWO)
 
-		if(locationGO!= None or locationWO!= None):
-			#enter clic in both cases
-			self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
+			if(locationGO!= None or locationWO!= None):
+				#enter clic in both cases
+				self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
+			else:
+				game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
+				game_frame_buffer = self.extract_game_area(game_frame_buffer)
+				action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
+
+				print(action, label, value)
+				self.input_controller.tap_key(value)
 		else:
-			self.input_controller.tap_key(inputs[random.randint(0,4)])
+			self.printer.add("Finish test")
 
-		for i, game_frame in enumerate(self.game_frame_buffer.frames):
-			self.visual_debugger.store_image_data(
-			game_frame.frame,
-			game_frame.frame.shape,
-			str(i)
-			)
+		def extract_game_area(self, frame_buffer):
+			game_area_buffer = []
+			for game_frame in frame_buffer.frames:
+				game_area = serpent.cv.extract_region_from_image(
+				game_frame.grayscale_frame,
+				self.game.screen_regions["GAME_REGION"]
+				)
+
+				#frame = FrameTransformer.rescale(game_area, 1)
+				game_area_buffer.append(frame)
+
+			return game_area_buffer
