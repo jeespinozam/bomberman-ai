@@ -96,8 +96,8 @@ class SerpentPPO:
         )
 
         # Get prediction from agent, execute
-        action = self.agent.act(states)
-        label = self.game_inputs_mapping[action]
+        #action = self.agent.act(states)
+        label = self.game_inputs_mapping[random.randint(0,4)]
 
         return action, label, self.game_inputs[label]
 

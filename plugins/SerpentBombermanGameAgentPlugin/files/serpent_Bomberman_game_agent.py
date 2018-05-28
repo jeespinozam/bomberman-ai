@@ -42,7 +42,6 @@ class SerpentBombermanGameAgent(GameAgent):
 		self.spriteWO = self.game.sprites.get("SPRITE_GAME_WON")
 		#self.sprite.image_data
 		self.printer = TerminalPrinter()
-		self.max_attempts = 5;
 
 	def setup_play(self):
 		game_inputs = {
@@ -54,17 +53,20 @@ class SerpentBombermanGameAgent(GameAgent):
 		}
 		self.game_inputs = game_inputs
 
-		self.ppo_agent = SerpentPPO(
-		frame_shape= (480, 549, 4),
-		game_inputs=game_inputs
-		)
-
+		# self.ppo_agent = SerpentPPO(
+		# frame_shape= (120, 137, 2),
+		# game_inputs=game_inputs
+		# )
+		self.max_attempts = 20;
 		self.first_run = True
 		self.game_over = False
 		self.current_attempts = 0
 		self.run_reward = 0
 		self.started_at = datetime.utcnow().isoformat()
+		self.times = []
 		self.paused_at = None
+		self.win_times = 0
+		self.game_over_times = 0
 
 		print("Enter - Auto Save")
 		self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
@@ -73,10 +75,15 @@ class SerpentBombermanGameAgent(GameAgent):
 		return
 
 	def handle_play(self, game_frame):
+
+		print(self.current_attempts, datetime.utcnow().isoformat(), self.game_over_times, self.win_times)
+		self.times.append(datetime.utcnow().isoformat())
+
 		if self.first_run:
-			self.current_attempts += 1
 			self.first_run = False
 			return None
+
+		self.current_attempts += 1
 
 		self.printer.add("")
 		self.printer.add("BombermanAI")
@@ -92,7 +99,7 @@ class SerpentBombermanGameAgent(GameAgent):
 			KeyboardKey.KEY_RIGHT,
 			KeyboardKey.KEY_SPACE]
 
-		if(self.current_attempts != sel.max_attempts):
+		if(self.game_over_times < self.max_attempts):
 			#game over?
 			sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
 
@@ -106,16 +113,21 @@ class SerpentBombermanGameAgent(GameAgent):
 			locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
 			#print(locationWO)
 
-			if(locationGO!= None or locationWO!= None):
+			if(locationGO!= None):
 				#enter clic in both cases
+				self.game_over_times += 1
+				self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
+			elif locationWO!= None:
+				self.win_times += 1
 				self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
 			else:
-				game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
-				game_frame_buffer = self.extract_game_area(game_frame_buffer)
-				action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
+				#game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
+				#game_frame_buffer = self.extract_game_area(game_frame_buffer)
+				#action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
 
-				print(action, label, value)
-				self.input_controller.tap_key(value)
+				#print(action, label, value)
+				#self.input_controller.tap_key(value)
+				self.input_controller.tap_key(inputs[random.randint(0,4)])
 		else:
 			self.printer.add("Finish test")
 
@@ -127,7 +139,7 @@ class SerpentBombermanGameAgent(GameAgent):
 				self.game.screen_regions["GAME_REGION"]
 				)
 
-				#frame = FrameTransformer.rescale(game_area, 1)
+				frame = FrameTransformer.rescale(game_area, 0.25)
 				game_area_buffer.append(frame)
 
 			return game_area_buffer
