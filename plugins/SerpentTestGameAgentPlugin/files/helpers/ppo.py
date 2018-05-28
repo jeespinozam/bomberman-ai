@@ -100,7 +100,7 @@ class SerpentPPO:
         return mapping
 
     def save_model(self):
-        self.ppo_agent.agent.save_model(directory=os.path.join(os.getcwd(), "datasets", "aisaac", "ppo_model"), append_timestep=False)
+        self.agent.save_model(directory=os.path.join(os.getcwd(), "datasets", "bomberman", "ppo_model"), append_timestep=False)
 
-    def load_model(self):
-        self.ppo_agent.agent.restore_model(directory=os.path.join(os.getcwd(), "datasets", "aisaac"))
+    def restore_model(self):
+        self.agent.restore_model(directory=os.path.join(os.getcwd(), "datasets", "bomberman"))

@@ -24,10 +24,21 @@ class SerpentTestGame(Game, metaclass=Singleton):
 
 	@property
 	def screen_regions(self):
+
+		#t
+		dic_offset = {
+			"WINDOWS_CHROME": {
+				"top": 81,
+				"left": 5
+			}
+		}
+
+		offset = dic_offset["WINDOWS_CHROME"]
+
 		regions = {
-			"GAME_REGION": (0, 0, 480, 549),
-			"GAME_OVER_REGION": (160,160, 225, 404),
-			"WIN_REGION": (175,130, 220, 421),
+			"GAME_REGION": (offset["top"], offset["left"], 416 + offset["top"], 544 + offset["left"]), #544x416
+			"GAME_OVER_REGION": (118 + offset["top"], 163 + offset["left"], 151 + offset["top"], 383 + offset["left"]), #220x33 - 163,118
+			"WIN_REGION": (118 + offset["top"], 171 + offset["left"], 149 + offset["top"], 372 + offset["left"]), # 201x31  - 171,118
 		}
 
 		return regions

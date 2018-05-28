@@ -15,6 +15,8 @@ from serpent.input_controller import KeyboardKey
 from serpent.sprite import Sprite
 from serpent.sprite_locator import SpriteLocator
 from serpent.sprite_identifier import SpriteIdentifier
+import skimage.io
+from serpent.visual_debugger.visual_debugger import VisualDebugger
 
 # from .helpers.game_status import Game
 from .helpers.terminal_printer import TerminalPrinter
@@ -38,10 +40,7 @@ class SerpentTestGameAgent(GameAgent):
         print(self.game)
         print('game type')
         print(type(self.game))
-        for (i, value) in enumerate(self.game.sprites):
-           if i == 13:
-                print(value)
-                self.value = value
+
         self.spriteGO = self.game.sprites.get('SPRITE_GAME_OVER')
         self.spriteWO = self.game.sprites.get('SPRITE_GAME_WON')
 
@@ -57,7 +56,9 @@ class SerpentTestGameAgent(GameAgent):
         }
         self.game_inputs = game_inputs
 
-        self.ppo_agent = SerpentPPO(frame_shape=(120, 137, 2), game_inputs=game_inputs)
+        #self.ppo_agent = SerpentPPO(frame_shape=(120, 137, 4), game_inputs=game_inputs)
+        ##load model
+        #self.ppo_agent.restore_model()
 
         self.first_run = True
         self.game_over = False
@@ -65,9 +66,6 @@ class SerpentTestGameAgent(GameAgent):
         self.run_reward = 0
         self.started_at = datetime.utcnow().isoformat()
         self.paused_at = None
-
-        ##load model
-        self.ppo_agent.load_model()
 
         print("Enter - Auto Save")
         self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
@@ -89,7 +87,6 @@ class SerpentTestGameAgent(GameAgent):
         if self.first_run:
             self.current_attempts += 1
             self.first_run = False
-            self.started_at = time.time()
             return None
 
         self.printer.add("")
@@ -100,32 +97,44 @@ class SerpentTestGameAgent(GameAgent):
         self.printer.add(f"Current Run: #{self.current_attempts}")
         self.printer.add("")
 
+        self.check_game_state(game_frame)
+
+        if(self.restart_game):
+            #enter clic in both cases
+            if not self.current_attempts % 10:
+                self.ppo_agent.save_model()
+            self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
+            os.exit()
+        else:
+            #game_frame_buffer = FrameGrabber.get_frames([0, 1, 2,4], frame_type="PIPELINE")
+            #game_frame_buffer = self.extract_game_area(game_frame_buffer)
+            #action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
+            #print(action, label, value)
+            key, value = random.choice(list(self.game_inputs.items()))
+            self.input_controller.tap_key(value[0])
+
+
+    def check_game_state(self, game_frame):
         #game over?
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
-
         sprite_locator = SpriteLocator()
         locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
         print(locationGO)
-
         #won game?
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
         locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
         print(locationWO)
+        self.is_alive = locationGO== None and locationWO== None
+        self.restart_game =  not self.is_alive
+        self.victory = locationGO== None and locationWO!= None
 
-        print(type(game_frame))
+        print(f"Is allive? {self.is_alive}")
+        print(f"Won? {self.victory}")
 
-        if(locationGO!= None or locationWO!= None):
-            #enter clic in both cases
-            self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
-        else:
-            game_frame_buffer = FrameGrabber.get_frames([0, 1], frame_type="PIPELINE")
-            game_frame_buffer = self.extract_game_area(game_frame_buffer)
-            #print(game_frame_buffer[0])
-            #sys.exit()
-            action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
-            print(action, label, value)
-            #self.input_controller.tap_key(value)
-
-
-        if(self.current_attempts % 10 == 0):
+        for i, game_frame in enumerate(self.game_frame_buffer.frames):
+            self.visual_debugger.store_image_data(
+                game_frame.frame,
+                game_frame.frame.shape,
+                str(i)
+            )
