@@ -8,90 +8,107 @@ import numpy as np
 # https://github.com/SerpentAI/SerpentAIsaacGameAgentPlugin/blob/master/files/helpers/ppo.py
 class SerpentPPO:
 
-    def __init__(self, frame_shape=None, game_inputs=None):
+	def __init__(self, frame_shape=None, game_inputs=None):
 
-        if frame_shape is None:
-            raise SerpentError("A 'frame_shape' tuple kwarg is required...")
+		if frame_shape is None:
+			raise SerpentError("A 'frame_shape' tuple kwarg is required...")
 
-        states_spec = {"type": "float", "shape": frame_shape}
+		states_spec = {"type": "float", "shape": frame_shape}
 
-        if game_inputs is None:
-            raise SerpentError("A 'game_inputs' dict kwarg is required...")
+		if game_inputs is None:
+			raise SerpentError("A 'game_inputs' dict kwarg is required...")
 
-        self.game_inputs = game_inputs
-        self.game_inputs_mapping = self._generate_game_inputs_mapping()
+		self.game_inputs = game_inputs
+		self.game_inputs_mapping = self._generate_game_inputs_mapping()
 
-        actions_spec = {"type": "int", "num_actions": len(self.game_inputs)}
+		actions_spec = {"type": "int", "num_actions": len(self.game_inputs)}
 
-        summary_spec = {
-            "directory": "./board/",
-            "steps": 50,
-            "labels": [
-                "configuration",
-                "gradients_scalar",
-                "regularization",
-                "inputs",
-                "losses",
-                "variables"
-            ]
-        }
+		summary_spec = {
+			"directory": "./board/",
+			"steps": 50,
+			"labels": [
+				"configuration",
+				"gradients_scalar",
+				"regularization",
+				"inputs",
+				"losses",
+				"variables"
+			]
+		}
 
-        network_spec = [
-            {"type": "conv2d", "size": 32, "window": 8, "stride": 4},
-            {"type": "conv2d", "size": 64, "window": 4, "stride": 2},
-            {"type": "conv2d", "size": 64, "window": 3, "stride": 1},
-            {"type": "flatten"},
-            {"type": "dense", "size": 1024}
-        ]
+		network_spec = [
+			{"type": "conv2d", "size": 32, "window": 8, "stride": 4},
+			{"type": "conv2d", "size": 64, "window": 4, "stride": 2},
+			{"type": "conv2d", "size": 64, "window": 3, "stride": 1},
+			{"type": "flatten"},
+			{"type": "dense", "size": 1024}
+		]
 
-        self.agent = PPOAgent(
-            states_spec=states_spec,
-            actions_spec=actions_spec,
-            batched_observe=2560,
-            scope="ppo",
-            summary_spec=summary_spec,
-            network_spec=network_spec,
-            device=None,
-            session_config=None,
-            saver_spec=None,
-            distributed_spec=None,
-            discount=0.97,
-            variable_noise=None,
-            states_preprocessing_spec=None,
-            explorations_spec=None,
-            reward_preprocessing_spec=None,
-            distributions_spec=None,
-            entropy_regularization=0.01,
-            batch_size=2560,
-            keep_last_timestep=True,
-            baseline_mode=None,
-            baseline=None,
-            baseline_optimizer=None,
-            gae_lambda=None,
-            likelihood_ratio_clipping=None,
-            step_optimizer=None,
-            optimization_steps=10
-        )
+		self.agent = PPOAgent(
+			states=states_spec,
+			actions=actions_spec,
+			network=network_spec,
+			batched_observe=2560,
+			batching_capacity=1000,
+			# BatchAgent
+			#keep_last_timestep=True,
+			# PPOAgent
+			step_optimizer=dict(
+				type='adam',
+				learning_rate=1e-3
+			),
+			optimization_steps=10,
+			# Model
+			scope='ppo',
+			discount=0.97,
+			# DistributionModel
+			distributions=None,
+			entropy_regularization=0.01,
+			# PGModel
+			baseline_mode=None,
+			baseline=None,
+			baseline_optimizer=None,
+			gae_lambda=None,
+			# PGLRModel
+			likelihood_ratio_clipping=None,
+			#summary_spec=summary_spec,
+			#distributed_spec=None,
+			# More info
+			device=None,
+			#session_config=None,
+			saver=None,
+			variable_noise=None,
+			#states_preprocessing_spec=None,
+			#explorations_spec=None,
+			#reward_preprocessing_spec=None,
 
-    def generate_action(self, game_frame_buffer):
-        states = np.stack(
-            game_frame_buffer,
-            axis=2
-        )
+			summarizer=None,
+			execution=None,
+			actions_exploration=None,
+			update_mode=None,
+			memory=None,
+			subsampling_fraction=0.1
+		)
 
-        # Get prediction from agent, execute
-        action = self.agent.act(states)
-        label = self.game_inputs_mapping[action]
+	def generate_action(self, game_frame_buffer):
+		states = np.stack(
+			[game_frame.frame for game_frame in game_frame_buffer.frames],
+			axis=2
+		)
 
-        return action, label, self.game_inputs[label]
+		# Get prediction from agent, execute
+		action = self.agent.act(states)
+		label = self.game_inputs_mapping[action]
 
-    def observe(self, reward=0, terminal=False):
-        self.agent.observe(reward=reward, terminal=terminal)
+		return action, label, self.game_inputs[label]
 
-    def _generate_game_inputs_mapping(self):
-        mapping = dict()
+	def observe(self, reward=0, terminal=False):
+		self.agent.observe(reward=reward, terminal=terminal)
 
-        for index, key in enumerate(self.game_inputs):
-            mapping[index] = key
+	def _generate_game_inputs_mapping(self):
+		mapping = dict()
 
-        return mapping
+		for index, key in enumerate(self.game_inputs):
+			mapping[index] = key
+
+		return mapping

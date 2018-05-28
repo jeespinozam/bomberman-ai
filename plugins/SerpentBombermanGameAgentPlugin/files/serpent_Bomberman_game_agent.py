@@ -1,7 +1,7 @@
 import time
 import os
 import pickle
-#import serpent.cv
+import serpent.cv
 
 import numpy as np
 import collections
@@ -17,7 +17,7 @@ from serpent.sprite import Sprite
 from serpent.sprite_locator import SpriteLocator
 from serpent.sprite_identifier import SpriteIdentifier
 
-#from .helpers.game_status import Game
+from .helpers.game_status import Game
 from .helpers.terminal_printer import TerminalPrinter
 from .helpers.ppo import SerpentPPO
 
@@ -59,10 +59,10 @@ class SerpentBombermanGameAgent(GameAgent):
 		}
 		self.game_inputs = game_inputs
 
-		# self.ppo_agent = SerpentPPO(
-		# frame_shape=(125, 112, 4),
-		# game_inputs=game_inputs
-		# )
+		self.ppo_agent = SerpentPPO(
+		 frame_shape=(480, 549, 4),
+		 game_inputs=game_inputs
+		)
 
 		self.first_run = True
 		self.game_over = False
@@ -76,6 +76,20 @@ class SerpentBombermanGameAgent(GameAgent):
 		time.sleep(2)
 
 		return
+
+	def extract_game_area(self, frame_buffer):
+		game_area_buffer = []
+
+		for game_frame in frame_buffer.frames:
+			game_area = serpent.cv.extract_region_from_image(
+			game_frame.grayscale_frame,
+			self.game.screen_regions["GAME_REGION"]
+			)
+
+			frame = FrameTransformer.rescale(game_area, 0.25)
+			game_area_buffer.append(frame)
+
+		return game_area_buffer
 
 	def handle_play(self, game_frame):
 		if self.first_run:
@@ -110,15 +124,15 @@ class SerpentBombermanGameAgent(GameAgent):
 		locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
 		print(locationWO)
 
+		print(type(game_frame))
+
 		if(locationGO!= None or locationWO!= None):
 			#enter clic in both cases
 			self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
 		else:
-			self.input_controller.tap_key(inputs[random.randint(0,4)])
+			game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
+			game_frame_buffer = self.extract_game_area(game_frame_buffer)
+			action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
 
-		for i, game_frame in enumerate(self.game_frame_buffer.frames):
-			self.visual_debugger.store_image_data(
-			game_frame.frame,
-			game_frame.frame.shape,
-			str(i)
-			)
+			print(action, label, value)
+			self.input_controller.tap_key(value)

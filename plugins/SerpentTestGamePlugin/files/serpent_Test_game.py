@@ -1,13 +1,13 @@
 from serpent.game import Game
 
-from .api.api import BombermanAPI
+from .api.api import TestAPI
 
 from serpent.utilities import Singleton
 
 from serpent.game_launchers.web_browser_game_launcher import WebBrowser
 
 
-class SerpentBombermanGame(Game, metaclass=Singleton):
+class SerpentTestGame(Game, metaclass=Singleton):
 
 	def __init__(self, **kwargs):
 		kwargs["platform"] = "web_browser"
@@ -19,7 +19,7 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
 
 		super().__init__(**kwargs)
 
-		self.api_class = BombermanAPI
+		self.api_class = TestAPI
 		self.api_instance = None
 
 	@property
