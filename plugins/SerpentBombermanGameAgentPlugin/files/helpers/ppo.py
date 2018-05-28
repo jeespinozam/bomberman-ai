@@ -37,18 +37,17 @@ class SerpentPPO:
         }
 
         network_spec = [
-            {"type": "conv2d", "size": 32, "window": 8, "stride": 4},
-            {"type": "conv2d", "size": 64, "window": 4, "stride": 2},
-            {"type": "conv2d", "size": 64, "window": 3, "stride": 1},
+            {"type": "conv2d", "size": 16, "window": 2, "stride": 1},
             {"type": "flatten"},
-            {"type": "dense", "size": 1024}
+            {"type": "dense", "size": 64},
+            {"type": "dense", "size": 32}
         ]
 
         self.agent = PPOAgent(
             states=states_spec,
             actions=actions_spec,
             network=network_spec,
-            batched_observe=2560,
+            batched_observe=256,
             batching_capacity=1000,
             # BatchAgent
             #keep_last_timestep=True,
@@ -112,3 +111,9 @@ class SerpentPPO:
             mapping[index] = key
 
         return mapping
+
+    def save_model(self):
+        self.ppo_agent.agent.save_model(directory=os.path.join(os.getcwd(), "datasets", "aisaac", "ppo_model"), append_timestep=False)
+
+    def load_model(self):
+        self.ppo_agent.agent.restore_model(directory=os.path.join(os.getcwd(), "datasets", "aisaac"))
