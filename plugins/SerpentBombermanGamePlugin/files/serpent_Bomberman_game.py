@@ -12,9 +12,9 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
     def __init__(self, **kwargs):
         kwargs["platform"] = "web_browser"
 
-        kwargs["window_name"] = "Safari"
+        kwargs["window_name"] = "HTML5 Bombergirl - Mozilla Firefox"
 
-        kwargs["url"] = "http://0.0.0.0:8000"
+        kwargs["url"] = "https://gd-bomberman.herokuapp.com/"
         kwargs["browser"] = WebBrowser.DEFAULT
 
         super().__init__(**kwargs)
