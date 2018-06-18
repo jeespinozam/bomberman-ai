@@ -28,7 +28,7 @@ class SerpentPPO:
             {"type": "conv2d", "size": 16, "window": 2, "stride": 1},
             {"type": "flatten"},
             {"type": "dense", "size": 64},
-            {"type": "dense", "size": 32}
+            #{"type": "dense", "size": 32}
         ]
 
         self.agent = PPOAgent(
@@ -45,7 +45,7 @@ class SerpentPPO:
                 type='adam',
                 learning_rate=1e-4
             ),
-                #optimization_steps=10,
+            optimization_steps=10,
             # Model
             scope='ppo'
                 #discount=0.97,
