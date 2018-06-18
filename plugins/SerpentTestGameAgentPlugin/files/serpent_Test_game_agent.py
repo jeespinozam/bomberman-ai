@@ -89,12 +89,13 @@ class SerpentTestGameAgent(GameAgent):
 
         return game_area_buffer
 
-    def convert_to_rgba(matrix):
-        for x in len(matrix):
-            for y in len(matrix[x]):
+    def convert_to_rgba(self, matrix):
+        #print(matrix)
+        for x in range(0,len(matrix)):
+            for y in range(0,len(matrix[x])):
                 #pixel
                 pixel = matrix[x][y]
-                matrix[x][y] = [pixel[0],pixel[1],pixel[2], 1]
+                matrix[x][y] = [pixel[0],pixel[1],pixel[2], 255]
 
 
     def extract_game_squares(self, frame):
@@ -111,7 +112,7 @@ class SerpentTestGameAgent(GameAgent):
                 der = ((i+2)*const + 16, (j+2)*const + 16)
                 reg = (izq[0], izq[1], der[0], der[1])
                 square =  serpent.cv.extract_region_from_image(game_area, reg)
-                game_squares[i][j] = convert_to_rgba(square)
+                game_squares[i][j] = self.convert_to_rgba(square)
         return game_squares
 
     def handle_play(self, game_frame):
