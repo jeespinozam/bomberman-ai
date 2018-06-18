@@ -38,12 +38,12 @@ class SerpentTestGameAgent(GameAgent):
         self.frame_handler_setups['PLAY'] = self.setup_play
 
         self.value = None
-        print('Sprites')
-        print(type(self.game.sprites))
-        print('game')
-        print(self.game)
-        print('game type')
-        print(type(self.game))
+        #print('Sprites')
+        #print(type(self.game.sprites))
+        #print('game')
+        #print(self.game)
+        #print('game type')
+        #print(type(self.game))
 
         self.spriteGO = self.game.sprites.get('SPRITE_GAME_OVER')
         self.spriteWO = self.game.sprites.get('SPRITE_GAME_WON')
@@ -77,6 +77,28 @@ class SerpentTestGameAgent(GameAgent):
         self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
         time.sleep(2)
 
+    def find_image(self, im, tpl):
+        im = np.atleast_3d(im)
+        tpl = np.atleast_3d(tpl)
+        H, W, D = im.shape[:3]
+        h, w = tpl.shape[:2]
+
+        # Integral image and template sum per channel
+        sat = im.cumsum(1).cumsum(0)
+        tplsum = np.array([tpl[:, :, i].sum() for i in range(D)])
+
+        # Calculate lookup table for all the possible windows
+        iA, iB, iC, iD = sat[:-h, :-w], sat[:-h, w:], sat[h:, :-w], sat[h:, w:] 
+        lookup = iD - iB - iC + iA
+        # Possible matches
+        possible_match = np.where(np.logical_and.reduce([lookup[..., i] == tplsum[i] for i in range(D)]))
+
+        # Find exact match
+        for y, x in zip(*possible_match):
+            if np.all(im[y+1:y+h+1, x+1:x+w+1] == tpl):
+                return (y+1, x+1)
+        return None
+
     def extract_game_area(self, frame_buffer):
         game_area_buffer = []
 
@@ -91,11 +113,16 @@ class SerpentTestGameAgent(GameAgent):
 
     def convert_to_rgba(self, matrix):
         #print(matrix)
+        new_matrix = []
         for x in range(0,len(matrix)):
+            line = []
             for y in range(0,len(matrix[x])):
                 #pixel
                 pixel = matrix[x][y]
-                matrix[x][y] = [pixel[0],pixel[1],pixel[2], 255]
+                new_pixel = [pixel[0],pixel[1],pixel[2], 255]
+                line.append(new_pixel)
+            new_matrix.append(line)
+        return np.array(new_matrix)
 
 
     def extract_game_squares(self, frame):
@@ -105,14 +132,19 @@ class SerpentTestGameAgent(GameAgent):
         # 0,0
         # 32,32
         game_squares = [[None for j in range(0,11)] for i in range(0,15)]
+        const_offset = 8
         const = 32
         for i in range(0,15):
             for j in range(0, 11):
-                izq = ((i+1)*const - 16, (j+2)*const - 16)
-                der = ((i+2)*const + 16, (j+2)*const + 16)
+                izq = ((i+1)*const - const_offset, (j+1)*const - const_offset)
+                der = ((i+2)*const + const_offset, (j+2)*const + const_offset)
                 reg = (izq[0], izq[1], der[0], der[1])
                 square =  serpent.cv.extract_region_from_image(game_area, reg)
-                game_squares[i][j] = self.convert_to_rgba(square)
+                square = self.convert_to_rgba(square)
+                sprite_to_locate = Sprite("QUERY", image_data=square[..., np.newaxis])
+                sprite = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
+                game_squares[i][j] = sprite
+                
         return game_squares
 
     def handle_play(self, game_frame):
@@ -145,13 +177,7 @@ class SerpentTestGameAgent(GameAgent):
             if(value):
                 self.input_controller.tap_key(value[0])
         game_squares = self.extract_game_squares(game_frame.frame)
-        girl_square = game_squares[0][0]
-        sprite_to_locate = Sprite("QUERY", image_data=girl_square)
-        #sprite_locator = SpriteLocator()
-        locationGirl = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
-        #locationGirl = sprite_locator.locate(sprite=sprite_to_locate, game_frame=MyFrame(girl_square))
-        print("girl location")
-        print(locationGirl)
+        
 
 
     def check_game_state(self, game_frame):
