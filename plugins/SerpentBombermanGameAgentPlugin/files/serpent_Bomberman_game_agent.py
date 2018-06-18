@@ -53,16 +53,16 @@ class SerpentBombermanGameAgent(GameAgent):
 		}
 		self.game_inputs = game_inputs
 
-		# self.ppo_agent = SerpentPPO(
-		# frame_shape= (120, 137, 2),
-		# game_inputs=game_inputs
-		# )
+		self.ppo_agent = SerpentPPO(
+		frame_shape= (120, 137, 4),
+		game_inputs=game_inputs
+		)
 		self.max_attempts = 20;
 		self.first_run = True
 		self.game_over = False
 		self.current_attempts = 0
 		self.run_reward = 0
-		self.started_at = datetime.utcnow().isoformat()
+		self.started_at = datetime.time(datetime.now())
 		self.times = []
 		self.paused_at = None
 		self.win_times = 0
@@ -76,7 +76,7 @@ class SerpentBombermanGameAgent(GameAgent):
 
 	def handle_play(self, game_frame):
 
-		print(self.current_attempts, datetime.utcnow().isoformat(), self.game_over_times, self.win_times)
+		print(self.current_attempts, datetime.time(datetime.now()), self.game_over_times, self.win_times)
 		self.times.append(datetime.utcnow().isoformat())
 
 		if self.first_run:
@@ -121,25 +121,27 @@ class SerpentBombermanGameAgent(GameAgent):
 				self.win_times += 1
 				self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
 			else:
-				#game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
-				#game_frame_buffer = self.extract_game_area(game_frame_buffer)
-				#action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
+				game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
+				game_frame_buffer = self.extract_game_area(game_frame_buffer)
+				action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
 
 				#print(action, label, value)
 				#self.input_controller.tap_key(value)
-				self.input_controller.tap_key(inputs[random.randint(0,4)])
+				self.input_controller.tap_key(inputs[action])
+				#self.input_controller.tap_key(inputs[random.randint(0,4)])
 		else:
 			self.printer.add("Finish test")
+			print(datetime.time(datetime.now()))
 
-		def extract_game_area(self, frame_buffer):
-			game_area_buffer = []
-			for game_frame in frame_buffer.frames:
-				game_area = serpent.cv.extract_region_from_image(
-				game_frame.grayscale_frame,
-				self.game.screen_regions["GAME_REGION"]
-				)
+	def extract_game_area(self, frame_buffer):
+		game_area_buffer = []
+		for game_frame in frame_buffer.frames:
+			game_area = serpent.cv.extract_region_from_image(
+			game_frame.grayscale_frame,
+			self.game.screen_regions["GAME_REGION"]
+			)
 
-				frame = FrameTransformer.rescale(game_area, 0.25)
-				game_area_buffer.append(frame)
+			frame = FrameTransformer.rescale(game_area, 0.25)
+			game_area_buffer.append(frame)
 
-			return game_area_buffer
+		return game_area_buffer

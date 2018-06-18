@@ -96,9 +96,11 @@ class SerpentPPO:
         )
 
         # Get prediction from agent, execute
-        #action = self.agent.act(states)
-        label = self.game_inputs_mapping[random.randint(0,4)]
-
+        action = self.agent.act(states)
+        #print(action)
+        label = self.game_inputs_mapping[action]
+        #print(label)
+        #print(self.game_inputs[label])
         return action, label, self.game_inputs[label]
 
     def observe(self, reward=0, terminal=False):
