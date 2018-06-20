@@ -1,4 +1,4 @@
-from tensorforce.agents import DQFDAgent
+from tensorforce.agents import DQNAgent
 from tensorforce.agents import PPOAgent
 
 from serpent.utilities import SerpentError
@@ -15,7 +15,7 @@ class SerpentPPO:
         if frame_shape is None:
             raise SerpentError("A 'frame_shape' tuple kwarg is required...")
 
-        states_spec = {"type": "float16", "shape": frame_shape}
+        states_spec = {"type": "float32", "shape": frame_shape}
 
         if game_inputs is None:
             raise SerpentError("A 'game_inputs' dict kwarg is required...")
@@ -23,17 +23,17 @@ class SerpentPPO:
         self.game_inputs = game_inputs
         self.game_inputs_mapping = self._generate_game_inputs_mapping()
 
-        actions_spec = {"type": "float32", "num_actions": len(self.game_inputs)}
+        actions_spec = {"type": "int", "num_actions": len(self.game_inputs)}
 
         network_spec = [
             #{"type": "conv2d", "size": 16, "stride": 1},
             {"type": "conv2d", "size": 32, "stride": 1},
             {"type": "flatten"},
             #{"type": "dense", "size": 256},
-            {"type": "dense", "size": 5}
+            {"type": "dense", "size": 6}
         ]
 
-        self.agent = PPOAgent(
+        self.agent = DQNAgent(
             states=states_spec,
             actions=actions_spec,
             network=network_spec,
@@ -49,7 +49,7 @@ class SerpentPPO:
             ),
             #optimization_steps=10,
             # Model
-            scope='dqfd',
+            scope='dqn',
             #discount=0.995,
             # DistributionModel
                 #distributions=None,

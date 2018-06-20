@@ -21,6 +21,7 @@ from serpent.visual_debugger.visual_debugger import VisualDebugger
 # from .helpers.game_status import Game
 from .helpers.terminal_printer import TerminalPrinter
 from .helpers.ppo import SerpentPPO
+from .helpers.dqn import KerasAgent
 
 import random
 
@@ -60,10 +61,18 @@ class SerpentTestGameAgent(GameAgent):
             "MoveLeft": [KeyboardKey.KEY_LEFT],
             "MoveRight": [KeyboardKey.KEY_RIGHT],
             "LeaveBomb": [KeyboardKey.KEY_SPACE],
+            "None": [0]
         }
         self.game_inputs = game_inputs
+        self.game_actions = [
+            KeyboardKey.KEY_UP, 
+            KeyboardKey.KEY_DOWN, 
+            KeyboardKey.KEY_LEFT, 
+            KeyboardKey.KEY_RIGHT,
+            KeyboardKey.KEY_SPACE,
+            None]
 
-        #self.ppo_agent = SerpentPPO(frame_shape=(120, 137, 2), game_inputs=game_inputs)
+        self.dqn_agent = KerasAgent(shape=(4, 120, 137), action_size=len(self.game_actions))
         #load model
         #self.ppo_agent.restore_model()
 
@@ -147,14 +156,23 @@ class SerpentTestGameAgent(GameAgent):
                 self.ppo_agent.save_model()
             self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
         else:
-            #game_frame_buffer = FrameGrabber.get_frames([0, 1], frame_type="PIPELINE")
-            #game_frame_buffer = self.extract_game_area(game_frame_buffer)
+            game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
+            game_frame_buffer = self.extract_game_area(game_frame_buffer)
+            state = np.stack(
+                game_frame_buffer,
+                axis=2
+            )
+            action_index = self.dqn_agent.act(state)
+            action = self.game_actions[action_index]
+            if(action):
+                self.input_controller.tap_key(action)
+            print('Action number ' + str(action_index))
             #action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
             #print(action, label, value)
-            key, value = random.choice(list(self.game_inputs.items()))
-            if(value[0]):
-                self.input_controller.tap_key(value[0])
-        game_squares = self.extract_game_squares(game_frame.frame)
+            #key, value = random.choice(list(self.game_inputs.items()))
+            #if(value[0]):
+            #    self.input_controller.tap_key(value[0])
+        #game_squares = self.extract_game_squares(game_frame.frame)
         
 
 
