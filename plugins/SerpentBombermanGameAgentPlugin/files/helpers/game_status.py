@@ -1,46 +1,66 @@
-from .memreader import MemoryReader
+#from .memreader import MemoryReader
+import time
 
 class Game:
-    def __init__(self, **kwargs):
-        self.reader = MemoryReader("Bomberman")
+    enemies = [] #{x,y}
+    bombs = [] #{x,y}
+    girl = {"x": 0, "y": 0}
+    start_time = 0
+    time = 0
+    game_inputs = {
+        0: "MoveUp",
+        1: "MoveDown",
+        2: "MoveLeft",
+        3: "MoveRight",
+        4: "LeaveBomb",
+        5: "None"
+    }
+    girl_alive = True
+    done = False
+    victory = False
 
-        health_path = ["Release_3.dll", 0x3C440, 0x170, 0x8, 0x20, 0x0, 0x18]
-        self.reader.store_address("health", health_path)
-
-        score_path = ["tier0_s64.dll", 0x169FB8, 0x110, 0x0, 0x258]
-        self.reader.store_address("score", score_path)
-
-        paused_path = ["mono.dll", 0x264140, 0x110, 0x80, 0xA0, 0x398, 0x98]
-        self.reader.store_address("paused", paused_path)
-
-        game_over_path = ["mono.dll", 0x260110, 0x178, 0x5C]
-        self.reader.store_address("game_over", game_over_path)
+    ##const
+    TIME_NORM = 1000
+    ENEMIES_NORM = 5
+    REWARD_BOMB = 50
+    REWARD_VICTORY = 1000
 
 
-    def GetLives(self):
-        lives = self.reader.read("health")
+    def restartState(self):
+        self.girl_alive = True
+        self.done = False
+        self.victory = False
+        self.time = 0
+        self.start_time = time.time()
 
-        return {
-            1077952576: 1,
-            555761728: 2,
-            555753760: 3
-        }.get(lives, 4)
+    def getCurrentTimeNormalized(self):
+        return self.time / self.TIME_NORM
 
-    def GetScore(self):
-        return self.reader.read("score")
+    def getDistanceNormalized(self, elem1, elem2):
+        return abs(elem1['x'] - elem2['x']) + abs(elem1['y'] - elem2['y'])
 
-    def IsPaused(self):
-        paused = self.reader.read("paused")
+    def updateTime(self):
+        self.time = time.time() - self.start_time
 
-        return {
-            0: True,
-            1: False
-        }.get(paused, False)
+    def getReward(self, action):
+        reward = 0
+        #enemies
+        reward -= self.ENEMIES_NORM*len(self.enemies)
+        #time
+        reward -= self.getCurrentTimeNormalized()
 
-    def IsOver(self):
-        game_over = self.reader.read("game_over")
+        for bomb in self.bombs:
+            reward -= self.getDistanceNormalized(bomb, self.girl)
 
-        return {
-            0: True,
-            1: False
-        }.get(game_over, False)
+        if(self.game_inputs[action] == "LeaveBomb"):
+            reward += self.REWARD_BOMB
+            for enemy in self.enemies:
+                reward += self.REWARD_BOMB / self.getDistanceNormalized(enemy, self.girl)
+
+        if self.victory:
+            reward += self.REWARD_VICTORY
+
+        if not self.girl_alive:
+            reward -= self.REWARD_VICTORY
+
+        return reward

@@ -28,8 +28,10 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
 		#t
 		dic_offset = {
 			"WINDOWS_CHROME": {
-				"top": 81,
-				"left": 5
+				# "top": 81,
+				# "left": 5
+				"top": 0,
+				"left": 0
 			}
 		}
 
