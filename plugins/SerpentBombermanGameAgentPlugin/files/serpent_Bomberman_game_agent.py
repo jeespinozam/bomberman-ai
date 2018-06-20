@@ -311,16 +311,17 @@ class SerpentBombermanGameAgent(GameAgent):
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
         sprite_locator = SpriteLocator()
         locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        print("Location Game over:",locationGO)
+        #print("Location Game over:",locationGO)
+
         #won game?
         locationWO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
         locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        print("Location Game won:",locationWO)
+        #print("Location Game won:",locationWO)
 
-        self.gamestate.lose = locationGO!=None
         self.gamestate.victory = locationWO!= None
+        self.gamestate.lose = locationGO!=None
         self.gamestate.girl_alive = (locationGO== None and locationWO== None)
         self.gamestate.done =  not self.gamestate.girl_alive
 
@@ -375,7 +376,6 @@ class SerpentBombermanGameAgent(GameAgent):
             game_frame_rand = random.choice(frame_buffer.frames).frame
             #update enviroment accorind to frame
             ###################FUN UPDATE STATE#########################################
-            # self.update_game_state(game_frame_rand)
             game_area = \
                     serpent.cv.extract_region_from_image(game_frame_rand,self.game.screen_regions['GAME_REGION'])
             #game ...
@@ -388,16 +388,47 @@ class SerpentBombermanGameAgent(GameAgent):
             self.gamestate.bombs = [] #{x, y}
             self.gamestate.enemies = [] #{x,y}
             #force girl to die if not found
+            girl_found = False
+            for i in range(0,15):
+                for j in range(0, 11):
+                    izq = ((j+1)*const - const_offset, (i+1)*const - const_offset)
+                    der = ((j+2)*const + const_offset, (i+2)*const + const_offset)
+                    reg = (izq[0], izq[1], der[0], der[1])
+                    square =  serpent.cv.extract_region_from_image(game_area, reg)
+                    square = self.convert_to_rgba(square)
+                    sprite_to_locate = Sprite("QUERY", image_data=square[..., np.newaxis])
+                    sprite = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
+                    game_squares[i][j] = sprite
+                    if("SPRITE_BETTY" in sprite):
+                        self.girl = {"x": i, "y": j}
+                        girl_found = True
+                    elif("SPRITE_GEORGE" in sprite):
+                        self.gamestate.enemies.append({"x": i, "y": j})
+                    elif("SPRITE_BOMB" in sprite):
+                        self.gamestate.bombs.append({"x": i, "y": j})
+            #####################CHECK STATE###########################
             #game over?
             locationGO = None
             sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
             sprite_locator = SpriteLocator()
             locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-            print("Location Game over:",locationGO)
+            #print("Location Game over:",locationGO)
 
-            if(locationGO!= None):
-                self.gamestate.girl_alive = False
-                self.gamestate.lose = True
+            #won game?
+            locationWO = None
+            sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
+            sprite_locator = SpriteLocator()
+            locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+            #print("Location Game won:",locationWO)
+
+            self.gamestate.lose = locationGO!=None
+            self.gamestate.victory = locationWO!= None
+            self.gamestate.girl_alive = (locationGO== None and locationWO== None)
+            self.gamestate.done =  not self.gamestate.girl_alive
+
+            print(f"Is alive? {self.gamestate.girl_alive}")
+            print(f"Game over? {self.gamestate.lose}")
+            print(f"Won? {self.gamestate.victory}")
 
             ###################REWARD#########################################
 

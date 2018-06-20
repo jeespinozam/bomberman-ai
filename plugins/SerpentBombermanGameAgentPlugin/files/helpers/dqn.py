@@ -61,7 +61,7 @@ class KerasAgent:
 
     def save_model(self, name):
         self.model.save(self.weight_backup)
-        self.model.save(self.name)
+        self.model.save(name)
 
     def act(self, state):
         if np.random.rand() <= self.exploration_rate:

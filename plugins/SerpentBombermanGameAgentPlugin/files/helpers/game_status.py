@@ -22,10 +22,12 @@ class Game:
 
     ##const
     TIME_NORM = 100
+    MOVEMENT_RW = 5
+    ALIVE_RW = 50
     ENEMIES_NORM = 5
     REWARD_BOMB = 50
-    REWARD_VICTORY = 200
-    REWARD_LOSE = 100
+    REWARD_VICTORY = 1000
+    REWARD_LOSE = 500
 
     def restartState(self):
         self.girl_alive = True
@@ -54,10 +56,16 @@ class Game:
         for bomb in self.bombs:
             reward -= self.getDistanceNormalized(bomb, self.girl)
 
-        if(self.game_inputs[action] == "LeaveBomb"):
+        if(action == 4):
             reward += self.REWARD_BOMB
             for enemy in self.enemies:
                 reward += self.REWARD_BOMB / self.getDistanceNormalized(enemy, self.girl)
+
+        if(action < 4):
+            reward += self.MOVEMENT_RW
+
+        if(self.girl_alive):
+            reward += self.ALIVE_RW
 
         if self.lose:
             reward -= self.REWARD_LOSE

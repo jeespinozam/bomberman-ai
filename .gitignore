@@ -20,4 +20,5 @@
 
 #simple db
 .DS_Store
-.model
+*.model
+*.csv
