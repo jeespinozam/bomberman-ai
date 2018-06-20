@@ -17,18 +17,20 @@ class Game:
     }
     girl_alive = True
     done = False
+    lose = False
     victory = False
 
     ##const
-    TIME_NORM = 1000
+    TIME_NORM = 100
     ENEMIES_NORM = 5
     REWARD_BOMB = 50
-    REWARD_VICTORY = 1000
-
+    REWARD_VICTORY = 200
+    REWARD_LOSE = 100
 
     def restartState(self):
         self.girl_alive = True
         self.done = False
+        self.lose = False
         self.victory = False
         self.time = 0
         self.start_time = time.time()
@@ -57,10 +59,10 @@ class Game:
             for enemy in self.enemies:
                 reward += self.REWARD_BOMB / self.getDistanceNormalized(enemy, self.girl)
 
+        if self.lose:
+            reward -= self.REWARD_LOSE
+
         if self.victory:
             reward += self.REWARD_VICTORY
-
-        if not self.girl_alive:
-            reward -= self.REWARD_VICTORY
 
         return reward

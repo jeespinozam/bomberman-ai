@@ -303,19 +303,51 @@ class SerpentBombermanGameAgent(GameAgent):
         #self.printer.add(f"Stage Started At: {self.started_at}")
         #self.printer.add(f"Current Run: #{self.current_attempts}")
         #self.printer.add("")
+        #self.check_game_state(game_frame)
 
-        self.check_game_state(game_frame)
+        #####################CHECK STATE###########################
+        #game over?
+        locationGO = None
+        sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
+        sprite_locator = SpriteLocator()
+        locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+        print("Location Game over:",locationGO)
+        #won game?
+        locationWO = None
+        sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
+        sprite_locator = SpriteLocator()
+        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+        print("Location Game won:",locationWO)
 
+        self.gamestate.lose = locationGO!=None
+        self.gamestate.victory = locationWO!= None
+        self.gamestate.girl_alive = (locationGO== None and locationWO== None)
+        self.gamestate.done =  not self.gamestate.girl_alive
+
+        print(f"Is alive? {self.gamestate.girl_alive}")
+        print(f"Game over? {self.gamestate.lose}")
+        print(f"Won? {self.gamestate.victory}")
+        #####################VISUAL DEBUGGER###########################
+        for i, game_frame in enumerate(self.game_frame_buffer.frames):
+            self.visual_debugger.store_image_data(
+                game_frame.frame,
+                game_frame.frame.shape,
+                str(i)
+            )
+
+        #####################MODEL###########################
         #get buffer
         frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
         game_frame_buffer = self.extract_game_area(frame_buffer)
         state = game_frame_buffer.reshape(4, 104, 136, 1)
 
         if(self.gamestate.done):
-            if not self.epoch % 10:
+            print(f"Game over, attemp {self.epoch}")
+            if (self.epoch % 10)== 0:
+                print("saving model")
                 self.dqn_agent.save_model(f"bombergirl_epoch_{self.epoch}.model")
                 self.printer.save_file()
-            self.printer.add(f"{self.epoch},{self.gamestate.time},{self.total_reward}")
+            self.printer.add(f"{self.gamestate.victory},{self.gamestate.lose},{self.epoch},{self.gamestate.time},{self.total_reward}")
             self.total_reward = 0
             self.dqn_agent.remember(self.prev_state, self.prev_action, self.prev_reward, state, True)
             self.dqn_agent.replay()
@@ -342,7 +374,34 @@ class SerpentBombermanGameAgent(GameAgent):
             #get random frame from buffer
             game_frame_rand = random.choice(frame_buffer.frames).frame
             #update enviroment accorind to frame
-            self.update_game_state(game_frame_rand)
+            ###################FUN UPDATE STATE#########################################
+            # self.update_game_state(game_frame_rand)
+            game_area = \
+                    serpent.cv.extract_region_from_image(game_frame_rand,self.game.screen_regions['GAME_REGION'])
+            #game ...
+            # 0,0
+            # 32,32
+            game_squares = [[None for j in range(0,11)] for i in range(0,15)]
+            const_offset = 8
+            const = 32
+            #game variables
+            self.gamestate.bombs = [] #{x, y}
+            self.gamestate.enemies = [] #{x,y}
+            #force girl to die if not found
+            #game over?
+            locationGO = None
+            sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
+            sprite_locator = SpriteLocator()
+            locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+            print("Location Game over:",locationGO)
+
+            if(locationGO!= NULL){
+                self.gamestate.girl_alive = False
+                self.gamestate.lose = True
+            }
+
+            ###################REWARD#########################################
+
             #get reward
             reward = self.gamestate.getReward(action_index)
             self.total_reward += reward
@@ -352,7 +411,7 @@ class SerpentBombermanGameAgent(GameAgent):
 
             if(action):
                 self.input_controller.tap_key(action, 0.15 if action_index < 4 else 0.01)
-            print(f"Action: {self.gamestate.game_inputs[action_index]}, reward: {reward}")
+            print(f"Action: {self.gamestate.game_inputs[action_index]}, reward: {reward}, total_reward: {self.total_reward}")
             #action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
             #print(action, label, value)
             #key, value = random.choice(list(self.game_inputs.items()))
@@ -364,18 +423,23 @@ class SerpentBombermanGameAgent(GameAgent):
 
     def check_game_state(self, game_frame):
         #game over?
+        locationGO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
         sprite_locator = SpriteLocator()
         locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print(locationGO)
+        print("Location Game over:",locationGO)
         #won game?
+        locationWO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
         locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print(locationWO)
+        print("Location Game won:",locationWO)
+
+        self.gamestate.lose = locationGO!=None
+        self.gamestate.victory = locationWO!= None
         self.gamestate.girl_alive = (locationGO== None and locationWO== None)
         self.gamestate.done =  not self.gamestate.girl_alive
-        self.gamestate.victory = locationGO== None and locationWO!= None
 
-        #print(f"Is allive? {self.is_alive}")
-        #print(f"Won? {self.victory}")
+        print(f"Is alive? {self.gamestate.girl_alive}")
+        print(f"Game over? {self.gamestate.lose}")
+        print(f"Won? {self.gamestate.victory}")
