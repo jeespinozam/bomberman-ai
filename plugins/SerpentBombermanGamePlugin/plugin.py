@@ -12,7 +12,7 @@ class SerpentBombermanGamePlugin(offshoot.Plugin):
     ]
 
     config = {
-        "fps": 10
+        "fps": 20
     }
 
     @classmethod

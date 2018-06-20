@@ -4,6 +4,7 @@ import time
 class Game:
     enemies = [] #{x,y}
     bombs = [] #{x,y}
+    bonus = []
     girl = {"x": 0, "y": 0}
     start_time = 0
     time = 0
@@ -21,13 +22,16 @@ class Game:
     victory = False
 
     ##const
-    TIME_NORM = 100
+    TIME_NORM = 10
     MOVEMENT_RW = 5
-    ALIVE_RW = 50
+    BONUS_RW = 10
+    ALIVE_RW = 20
     ENEMIES_NORM = 5
-    REWARD_BOMB = 50
-    REWARD_VICTORY = 1000
-    REWARD_LOSE = 500
+    REWARD_BOMB = 25
+    REWARD_VICTORY = 100
+    REWARD_LOSE = 50
+
+    MAX_DISTANCE = 8
 
     def restartState(self):
         self.girl_alive = True
@@ -48,28 +52,44 @@ class Game:
 
     def getReward(self, action):
         reward = 0
-        #enemies
+        # Para castigar por el numero de enemigos
         reward -= self.ENEMIES_NORM*len(self.enemies)
-        #time
+        # Para casticar con el paso del tiempo
         reward -= self.getCurrentTimeNormalized()
 
+        # Para castigar/ premiar si la chica está cerca/lejos a una bomba
         for bomb in self.bombs:
-            reward -= self.getDistanceNormalized(bomb, self.girl)
+            distance = self.getDistanceNormalized(bomb, self.girl)
+            if distance < self.MAX_DISTANCE:
+                reward -= distance
+            else
+                reward += distance
 
         if(action == 4):
+            # Para premiar que esté colocando una bomba
             reward += self.REWARD_BOMB
             for enemy in self.enemies:
-                reward += self.REWARD_BOMB / self.getDistanceNormalized(enemy, self.girl)
+                # Para premiar que la bomba está más cerca a un enemigo
+                distance = self.getDistanceNormalized(enemy, self.girl)
+                if distance< self.MAX_DISTANCE:
+                    reward += self.REWARD_BOMB/distance
 
         if(action < 4):
+            # Para premiar que se mueve
             reward += self.MOVEMENT_RW
+            # Para premiar que esté más cerca a un bonus
+            for bonus in self.bonus:
+                reward += self.BONUS_RW / self.getDistanceNormalized(bonus, self.girl)
 
+        # Para premiar que está jugando
         if(self.girl_alive):
             reward += self.ALIVE_RW
 
+        # Para castigar que ha perdido
         if self.lose:
             reward -= self.REWARD_LOSE
 
+        # Para premiar que ha ganado
         if self.victory:
             reward += self.REWARD_VICTORY
 

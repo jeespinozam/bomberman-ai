@@ -406,6 +406,8 @@ class SerpentBombermanGameAgent(GameAgent):
                         self.gamestate.enemies.append({"x": i, "y": j})
                     elif("SPRITE_BOMB" in sprite):
                         self.gamestate.bombs.append({"x": i, "y": j})
+                    elif("SPRITE_BONUSES" in sprite):
+                        self.gamestate.bonus.append({"x": i, "y": j})
             #####################CHECK STATE###########################
             #game over?
             locationGO = None
