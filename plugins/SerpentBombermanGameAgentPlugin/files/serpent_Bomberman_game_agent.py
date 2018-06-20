@@ -177,12 +177,12 @@ class SerpentBombermanGameAgent(GameAgent):
         self.frame_handler_setups['PLAY'] = self.setup_play
 
         self.value = None
-        print('Sprites')
-        print(type(self.game.sprites))
-        print('game')
-        print(self.game)
-        print('game type')
-        print(type(self.game))
+        #print('Sprites')
+        #print(type(self.game.sprites))
+        #print('game')
+        #print(self.game)
+        #print('game type')
+        #print(type(self.game))
 
         self.spriteGO = self.game.sprites.get('SPRITE_GAME_OVER')
         self.spriteWO = self.game.sprites.get('SPRITE_GAME_WON')
@@ -191,19 +191,19 @@ class SerpentBombermanGameAgent(GameAgent):
         self.printer = TerminalPrinter()
 
     def setup_play(self):
+
         game_inputs = {
             "MoveUp": [KeyboardKey.KEY_UP],
             "MoveDown": [KeyboardKey.KEY_DOWN],
             "MoveLeft": [KeyboardKey.KEY_LEFT],
             "MoveRight": [KeyboardKey.KEY_RIGHT],
             "LeaveBomb": [KeyboardKey.KEY_SPACE],
-            "None": None
         }
         self.game_inputs = game_inputs
 
-        #self.ppo_agent = SerpentPPO(frame_shape=(120, 137, 4), game_inputs=game_inputs)
-        ##load model
-        #self.ppo_agent.restore_model()
+        # self.ppo_agent = SerpentPPO(frame_shape=(120, 137, 2), game_inputs=game_inputs)
+        #load model
+        # self.ppo_agent.restore_model()
 
         self.first_run = True
         self.game_over = False
@@ -230,30 +230,41 @@ class SerpentBombermanGameAgent(GameAgent):
 
     def convert_to_rgba(self, matrix):
         #print(matrix)
+        new_matrix = []
         for x in range(0,len(matrix)):
+            line = []
             for y in range(0,len(matrix[x])):
                 #pixel
                 pixel = matrix[x][y]
-                matrix[x][y] = [pixel[0],pixel[1],pixel[2], 255]
+                new_pixel = [pixel[0],pixel[1],pixel[2], 255]
+                line.append(new_pixel)
+            new_matrix.append(line)
+        print(len(new_matrix))
+        return np.array(new_matrix)
 
 
     def extract_game_squares(self, frame):
-		game_area = \
-                    serpent.cv.extract_region_from_image(frame,self.game.screen_regions['GAME_REGION'])
-		#game ...
-		# 0,0
-		# 32,32
-		game_squares = [[None for j in range(0,11)] for i in range(0,15)]
-		const = 32
-		for i in range(0,15):
-			for j in range(0, 11):
-				izq = ((i+1)*const - 16, (j+2)*const - 16)
-				der = ((i+2)*const + 16, (j+2)*const + 16)
-				reg = (izq[0], izq[1], der[0], der[1])
-				square =  serpent.cv.extract_region_from_image(game_area, reg)
-				game_squares[i][j] = square
-				#game_squares[i][j] = self.convert_to_rgba(square)
-		return game_squares
+        game_area = \
+                serpent.cv.extract_region_from_image(frame,self.game.screen_regions['GAME_REGION'])
+        #game ...
+        # 0,0
+        # 32,32
+        game_squares = [[None for j in range(0,11)] for i in range(0,15)]
+        const_offset = 8
+        const = 32
+        for i in range(0,15):
+            for j in range(0, 11):
+                izq = ((i+1)*const - const_offset, (j+1)*const - const_offset)
+                der = ((i+2)*const + const_offset, (j+2)*const + const_offset)
+                reg = (izq[0], izq[1], der[0], der[1])
+                square =  serpent.cv.extract_region_from_image(game_area, reg)
+                square = self.convert_to_rgba(square)
+                if(len(square)!=0):
+                    sprite_to_locate = Sprite("QUERY", image_data=square[..., np.newaxis])
+                    sprite = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
+                    game_squares[i][j] = sprite
+
+        return game_squares
 
     def handle_play(self, game_frame):
         if self.first_run:
@@ -273,25 +284,19 @@ class SerpentBombermanGameAgent(GameAgent):
 
         if(self.restart_game):
             #enter clic in both cases
-            if not self.current_attempts % 10:
-                self.ppo_agent.save_model()
+            # if not self.current_attempts % 10:
+                # self.ppo_agent.save_model()
             self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
         else:
-            #game_frame_buffer = FrameGrabber.get_frames([0, 1], frame_type="PIPELINE")
-            #game_frame_buffer = self.extract_game_area(game_frame_buffer)
-            #action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
-            #print(action, label, value)
+            game_frame_buffer = FrameGrabber.get_frames([0, 1], frame_type="PIPELINE")
+            game_frame_buffer = self.extract_game_area(game_frame_buffer)
+            # action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
+            # print(action, label, value)
             key, value = random.choice(list(self.game_inputs.items()))
-            if(value):
+            if(value[0]):
                 self.input_controller.tap_key(value[0])
         game_squares = self.extract_game_squares(game_frame.frame)
-        girl_square = game_squares[0][0]
-        sprite_to_locate = Sprite("QUERY", image_data=girl_square)
-        #sprite_locator = SpriteLocator()
-        locationGirl = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
-        #locationGirl = sprite_locator.locate(sprite=sprite_to_locate, game_frame=MyFrame(girl_square))
-        print("girl location")
-        print(locationGirl)
+
 
 
     def check_game_state(self, game_frame):
