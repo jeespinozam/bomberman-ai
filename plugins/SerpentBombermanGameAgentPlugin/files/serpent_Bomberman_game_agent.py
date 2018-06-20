@@ -303,8 +303,14 @@ class SerpentBombermanGameAgent(GameAgent):
         #self.printer.add(f"Stage Started At: {self.started_at}")
         #self.printer.add(f"Current Run: #{self.current_attempts}")
         #self.printer.add("")
+        for i, game_frame in enumerate(self.game_frame_buffer.frames):
+            self.visual_debugger.store_image_data(
+                game_frame.frame,
+                game_frame.frame.shape,
+                str(i)
+            )
 
-        self.check_game_state(game_frame)
+        self.check_game_state(self.game_frame_buffer)
 
         #get buffer
         frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
@@ -312,7 +318,7 @@ class SerpentBombermanGameAgent(GameAgent):
         state = game_frame_buffer.reshape(4, 104, 136, 1)
 
         if(self.gamestate.done):
-            if not self.epoch % 10:
+            if not (self.epoch % 10):
                 self.dqn_agent.save_model(f"bombergirl_epoch_{self.epoch}.model")
                 self.printer.save_file()
             self.printer.add(f"{self.epoch},{self.gamestate.time},{self.total_reward}")
@@ -364,18 +370,22 @@ class SerpentBombermanGameAgent(GameAgent):
 
     def check_game_state(self, game_frame):
         #game over?
+        locationGO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
         sprite_locator = SpriteLocator()
-        locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print(locationGO)
+        locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame.frames)
+        print("Location Game over:",locationGO)
         #won game?
+        locationWO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
-        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print(locationWO)
+        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame.frames)
+        print("Location Game won:",locationWO)
+
         self.gamestate.girl_alive = (locationGO== None and locationWO== None)
         self.gamestate.done =  not self.gamestate.girl_alive
-        self.gamestate.victory = locationGO== None and locationWO!= None
+        self.gamestate.victory = locationWO!= None
 
-        #print(f"Is allive? {self.is_alive}")
-        #print(f"Won? {self.victory}")
+        print(f"Is alive? {self.gamestate.girl_alive}")
+        print(f"Game over? {self.gamestate.done}")
+        print(f"Won? {self.gamestate.victory}")
