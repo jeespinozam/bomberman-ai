@@ -133,6 +133,8 @@ class SerpentTestGameAgent(GameAgent):
         #game variables
         self.gamestate.bombs = [] #{x, y}
         self.gamestate.enemies = [] #{x,y}
+        #force girl to die if not found
+        girl_found = False
         for i in range(0,15):
             for j in range(0, 11):
                 izq = ((j+1)*const - const_offset, (i+1)*const - const_offset)
@@ -145,10 +147,13 @@ class SerpentTestGameAgent(GameAgent):
                 game_squares[i][j] = sprite
                 if("SPRITE_BETTY" in sprite):
                     self.girl = {"x": i, "y": j}
+                    girl_found = True
                 elif("SPRITE_GEORGE" in sprite):
                     self.gamestate.enemies.append({"x": i, "y": j})
                 elif("SPRITE_BOMB" in sprite):
                     self.gamestate.bombs.append({"x": i, "y": j})
+        self.gamestate.girl_alive = girl_found
+        self.gamestate.done = not girl_found
         return game_squares
 
     def handle_play(self, game_frame):
