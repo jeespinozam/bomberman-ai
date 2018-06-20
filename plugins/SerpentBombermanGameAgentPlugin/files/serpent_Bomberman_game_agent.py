@@ -432,13 +432,12 @@ class SerpentBombermanGameAgent(GameAgent):
         locationWO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
-        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame.frames)
         print("Location Game won:",locationWO)
 
-        self.gamestate.lose = locationGO!=None
-        self.gamestate.victory = locationWO!= None
         self.gamestate.girl_alive = (locationGO== None and locationWO== None)
         self.gamestate.done =  not self.gamestate.girl_alive
+        self.gamestate.victory = locationWO!= None
 
         print(f"Is alive? {self.gamestate.girl_alive}")
         print(f"Game over? {self.gamestate.lose}")
