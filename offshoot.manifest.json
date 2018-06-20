@@ -1,20 +1,5 @@
 {
     "plugins": {
-        "SerpentBombermanGamePlugin": {
-            "name": "SerpentBombermanGamePlugin",
-            "version": "0.1.0",
-            "files": [
-                {
-                    "path": "serpent_Bomberman_game.py",
-                    "pluggable": "Game"
-                }
-            ],
-            "plugins": [],
-            "libraries": [],
-            "config": {
-                "fps": 2
-            }
-        },
         "SerpentBombermanGameAgentPlugin": {
             "name": "SerpentBombermanGameAgentPlugin",
             "version": "0.1.0",
@@ -28,6 +13,21 @@
             "libraries": [],
             "config": {
                 "frame_handler": "PLAY"
+            }
+        },
+        "SerpentBombermanGamePlugin": {
+            "name": "SerpentBombermanGamePlugin",
+            "version": "0.1.0",
+            "files": [
+                {
+                    "path": "serpent_Bomberman_game.py",
+                    "pluggable": "Game"
+                }
+            ],
+            "plugins": [],
+            "libraries": [],
+            "config": {
+                "fps": 10
             }
         }
     }
