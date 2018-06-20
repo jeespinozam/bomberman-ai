@@ -395,7 +395,7 @@ class SerpentBombermanGameAgent(GameAgent):
             locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
             print("Location Game over:",locationGO)
 
-            if(locationGO!= NULL):
+            if(locationGO!= None):
                 self.gamestate.girl_alive = False
                 self.gamestate.lose = True
 
