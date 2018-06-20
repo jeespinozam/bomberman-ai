@@ -36,7 +36,7 @@ class SerpentPPO:
             ]
         }
 
-        network_spec = [
+		network_spec = [
             {"type": "conv2d", "size": 16, "window": 2, "stride": 1},
             {"type": "flatten"},
             {"type": "dense", "size": 64},
