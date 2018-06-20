@@ -25,10 +25,10 @@ class SerpentPPO:
         actions_spec = {"type": "int", "num_actions": len(self.game_inputs)}
 
         network_spec = [
-            {"type": "conv2d", "size": 16, "window": 2, "stride": 1},
+            {"type": "conv2d", "size": 1, "window": 2, "stride": 1},
             {"type": "flatten"},
-            {"type": "dense", "size": 64},
-            #{"type": "dense", "size": 32}
+            # {"type": "dense", "size": 64},
+            {"type": "dense", "size": 6}
         ]
 
         self.agent = PPOAgent(
@@ -104,4 +104,3 @@ class SerpentPPO:
 
     def restore_model(self):
         self.agent.restore_model(directory=os.path.join(os.getcwd(), "datasets", "bomberman"))
-		

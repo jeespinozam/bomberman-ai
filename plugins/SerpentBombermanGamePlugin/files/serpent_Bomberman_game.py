@@ -1,6 +1,6 @@
 from serpent.game import Game
 
-from .api.api import TestAPI
+from .api.api import BombermanAPI
 
 from serpent.utilities import Singleton
 
@@ -19,7 +19,7 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
 
 		super().__init__(**kwargs)
 
-		self.api_class = TestAPI
+		self.api_class = BombermanAPI
 		self.api_instance = None
 
 	@property

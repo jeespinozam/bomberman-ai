@@ -59,10 +59,10 @@ class SerpentBombermanGameAgent(GameAgent):
 		}
 		self.game_inputs = game_inputs
 
-		self.ppo_agent = SerpentPPO(
-		 frame_shape=(480, 549, 4),
-		 game_inputs=game_inputs
-		)
+		# self.ppo_agent = SerpentPPO(
+		#  frame_shape=(480, 549, 4),
+		#  game_inputs=game_inputs
+		# )
 
 		self.first_run = True
 		self.game_over = False
