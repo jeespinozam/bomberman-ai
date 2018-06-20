@@ -12,7 +12,7 @@ from keras.optimizers import *
 class KerasAgent:
 
     def __init__(self, shape, action_size):
-        self.weight_backup      = "bombergirl_weight.h5"
+        self.weight_backup      = "bombergirl_weight.model"
         self.shape              = shape
         self.action_size        = action_size
         self.memory             = deque(maxlen=2000)
@@ -21,7 +21,7 @@ class KerasAgent:
         self.exploration_rate   = 1.0
         self.exploration_min    = 0.01
         self.exploration_decay  = 0.995
-        self.brain              = self._build_model()
+        self.model              = self._build_model()
 
     def _build_model(self):
         model = Sequential()
@@ -31,7 +31,7 @@ class KerasAgent:
             16,
             kernel_size=(3, 3),
             strides=(1, 1),
-            data_format='channels_first',
+            #data_format='channels_first',
             input_shape=self.shape
         ))
         model.add(Activation('relu'))
@@ -59,28 +59,30 @@ class KerasAgent:
 
         return model
 
-    def save_model(self):
-        self.brain.save(self.weight_backup)
+    def save_model(self, name):
+        self.model.save(self.weight_backup)
+        self.model.save(self.name)
 
     def act(self, state):
         if np.random.rand() <= self.exploration_rate:
             return random.randrange(self.action_size)
-        act_values = self.brain.predict(state)
+        act_values = self.model.predict(state)
         return np.argmax(act_values[0])
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def replay(self, sample_batch_size):
+    def replay(self, sample_batch_size=256):
         if len(self.memory) < sample_batch_size:
-            return
+            sample_batch_size=len(self.memory)
         sample_batch = random.sample(self.memory, sample_batch_size)
         for state, action, reward, next_state, done in sample_batch:
             target = reward
             if not done:
-              target = reward + self.gamma * np.amax(self.brain.predict(next_state)[0])
-            target_f = self.brain.predict(state)
+                target = (reward + self.gamma *
+                          np.amax(self.model.predict(next_state)[0]))
+            target_f = self.model.predict(state)
             target_f[0][action] = target
-            self.brain.fit(state, target_f, epochs=1, verbose=0)
+            self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.exploration_rate > self.exploration_min:
             self.exploration_rate *= self.exploration_decay
