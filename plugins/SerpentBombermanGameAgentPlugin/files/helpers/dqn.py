@@ -53,9 +53,9 @@ class KerasAgent:
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         #model.compile(RMSprop(), 'MSE')
 
-        if os.path.isfile(self.weight_backup):
-            model.load_weights(self.weight_backup)
-            self.exploration_rate = self.exploration_min
+        #if os.path.isfile(self.weight_backup):
+        #    model.load_weights(self.weight_backup)
+        #    self.exploration_rate = self.exploration_min
 
         return model
 
@@ -76,13 +76,14 @@ class KerasAgent:
         if len(self.memory) < sample_batch_size:
             sample_batch_size=len(self.memory)
         sample_batch = random.sample(self.memory, sample_batch_size)
-        for state, action, reward, next_state, done in sample_batch:
-            target = reward
-            if not done:
-                target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
-            self.model.fit(state, target_f, epochs=1, verbose=0)
-        if self.exploration_rate > self.exploration_min:
-            self.exploration_rate *= self.exploration_decay
+        if(len(sample_batch) > 0):
+            for state, action, reward, next_state, done in sample_batch:
+                target = reward
+                if not done:
+                    target = (reward + self.gamma *
+                              np.amax(self.model.predict(next_state)[0]))
+                target_f = self.model.predict(state, steps=1)
+                target_f[0][action] = target
+                self.model.fit(state, target_f, epochs=1, verbose=0)
+            if self.exploration_rate > self.exploration_min:
+                self.exploration_rate *= self.exploration_decay

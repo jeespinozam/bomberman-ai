@@ -25,6 +25,8 @@ from .helpers.dqn import KerasAgent
 
 import random
 
+import pytesseract
+
 class MyFrame:
     def __init__ (self, frame):
         self.frame = frame
@@ -103,25 +105,42 @@ class SerpentBombermanGameAgent(GameAgent):
             new_matrix.append(line)
         return np.array(new_matrix)
 
+    def get_state_game_menu(self, game_frame):
+        game_over = \
+                    serpent.cv.extract_region_from_image(game_frame.frame,self.game.screen_regions['GAME_REGION'])
+        text = pytesseract.image_to_string(game_over)
+        print('ocr: ')
+        print(text)
+        game_menu = ['Game Over' in text, 'won' in text]
+        print(game_menu)
+
+        self.gamestate.victory = game_menu[1]
+        self.gamestate.lose = game_menu[0]
+        self.gamestate.girl_alive = not game_menu[0] and not game_menu[1]
+        self.gamestate.done = not self.gamestate.girl_alive
+
+
     def handle_play(self, game_frame):
 
         #####################CHECK STATE###########################
+        self.get_state_game_menu(game_frame)
+
         #game over?
-        locationGO = None
-        sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
-        sprite_locator = SpriteLocator()
-        locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+        #locationGO = None
+        #sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
+        #sprite_locator = SpriteLocator()
+        #locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
 
         #won game?
-        locationWO = None
-        sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
-        sprite_locator = SpriteLocator()
-        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+        #locationWO = None
+        #sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
+        #sprite_locator = SpriteLocator()
+        #locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
 
-        self.gamestate.victory = locationWO!= None
-        self.gamestate.lose = locationGO!=None
-        self.gamestate.girl_alive = (locationGO== None and locationWO== None)
-        self.gamestate.done =  not self.gamestate.girl_alive
+        #self.gamestate.victory = locationWO!= None
+        #self.gamestate.lose = locationGO!=None
+        #self.gamestate.girl_alive = (locationGO== None and locationWO== None)
+        #self.gamestate.done =  not self.gamestate.girl_alive
 
         print(f"Is alive? {self.gamestate.girl_alive}")
         print(f"Game over? {self.gamestate.lose}")
@@ -204,22 +223,24 @@ class SerpentBombermanGameAgent(GameAgent):
                     elif("SPRITE_BONUSES" in sprite):
                         self.gamestate.bonus.append({"x": i, "y": j})
             #####################CHECK STATE###########################
+            self.get_state_game_menu(game_frame)
+
             #game over?
-            locationGO = None
-            sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
-            sprite_locator = SpriteLocator()
-            locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+            #locationGO = None
+            #sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
+            #sprite_locator = SpriteLocator()
+            #locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
 
             #won game?
-            locationWO = None
-            sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
-            sprite_locator = SpriteLocator()
-            locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-
-            self.gamestate.lose = locationGO!=None
-            self.gamestate.victory = locationWO!= None
-            self.gamestate.girl_alive = (locationGO== None and locationWO== None)
-            self.gamestate.done =  not self.gamestate.girl_alive
+            #locationWO = None
+            #sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
+            #sprite_locator = SpriteLocator()
+            #locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
+            
+            #self.gamestate.lose = locationGO!=None
+            #self.gamestate.victory = locationWO!= None
+            #self.gamestate.girl_alive = (locationGO== None and locationWO== None)
+            #self.gamestate.done =  not self.gamestate.girl_alive
 
             ###################REWARD#########################################
 

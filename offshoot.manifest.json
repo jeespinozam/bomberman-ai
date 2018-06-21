@@ -27,7 +27,37 @@
             "plugins": [],
             "libraries": [],
             "config": {
-                "fps": 10
+                "fps": 20
+            }
+        },
+        "SerpentFooGamePlugin": {
+            "name": "SerpentFooGamePlugin",
+            "version": "0.1.0",
+            "files": [
+                {
+                    "path": "serpent_Foo_game.py",
+                    "pluggable": "Game"
+                }
+            ],
+            "plugins": [],
+            "libraries": [],
+            "config": {
+                "fps": 2
+            }
+        },
+        "SerpentFooGameAgentPlugin": {
+            "name": "SerpentFooGameAgentPlugin",
+            "version": "0.1.0",
+            "files": [
+                {
+                    "path": "serpent_Foo_game_agent.py",
+                    "pluggable": "GameAgent"
+                }
+            ],
+            "plugins": [],
+            "libraries": [],
+            "config": {
+                "frame_handler": "PLAY"
             }
         }
     }
