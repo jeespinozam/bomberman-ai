@@ -25,11 +25,14 @@ class SerpentBombermanGame(Game, metaclass=Singleton):
 	@property
 	def screen_regions(self):
 
-		#t
 		dic_offset = {
 			"WINDOWS_CHROME": {
-				# "top": 81,
-				# "left": 5
+				"top": 81,
+				"left": 5
+				#"top": 0,
+				#"left": 0
+			},
+			"SAFARI":{
 				"top": 0,
 				"left": 0
 			}

@@ -1,142 +1,3 @@
-# import time
-# import os
-# import pickle
-# import serpent.cv
-#
-# import numpy as np
-# import collections
-#
-# from datetime import datetime
-#
-#
-# from serpent.frame_transformer import FrameTransformer
-# from serpent.frame_grabber import FrameGrabber
-# from serpent.game_agent import GameAgent
-# from serpent.input_controller import KeyboardKey
-# from serpent.sprite import Sprite
-# from serpent.sprite_locator import SpriteLocator
-# from serpent.sprite_identifier import SpriteIdentifier
-#
-# # from .helpers.game_status import Game
-# from .helpers.terminal_printer import TerminalPrinter
-# from .helpers.ppo import SerpentPPO
-#
-#
-# import random
-#
-# class SerpentBombermanGameAgent(GameAgent):
-#
-# 	def __init__(self, **kwargs):
-# 		super().__init__(**kwargs)
-#
-# 		self.frame_handlers["PLAY"] = self.handle_play
-#
-# 		self.frame_handler_setups["PLAY"] = self.setup_play
-#
-# 		self.value = None
-# 		print("Sprites")
-# 		print(type(self.game.sprites))
-# 		print("game")
-# 		print(self.game)
-# 		print("game type")
-# 		print(type(self.game))
-# 		for i,value in enumerate(self.game.sprites):
-# 			if(i==13):
-# 				print(value)
-# 				self.value = value
-# 		self.spriteGO = self.game.sprites.get("SPRITE_GAME_OVER")
-# 		self.spriteWO = self.game.sprites.get("SPRITE_GAME_WON")
-# 		#self.sprite.image_data
-# 		self.printer = TerminalPrinter()
-#
-# 	def setup_play(self):
-# 		game_inputs = {
-# 		"Move Up": [KeyboardKey.KEY_UP],
-# 		"Move Down": [KeyboardKey.KEY_DOWN],
-# 		"Move Left": [KeyboardKey.KEY_LEFT],
-# 		"Move Right": [KeyboardKey.KEY_RIGHT],
-# 		"Leave Bomb": [KeyboardKey.KEY_SPACE]
-# 		}
-# 		self.game_inputs = game_inputs
-#
-# 		# self.ppo_agent = SerpentPPO(
-# 		#  frame_shape=(480, 549, 4),
-# 		#  game_inputs=game_inputs
-# 		# )
-#
-# 		self.first_run = True
-# 		self.game_over = False
-# 		self.current_attempts = 0
-# 		self.run_reward = 0
-# 		self.started_at = datetime.utcnow().isoformat()
-# 		self.paused_at = None
-#
-# 		print("Enter - Auto Save")
-# 		self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
-# 		time.sleep(2)
-#
-# 		return
-#
-# 	def extract_game_area(self, frame_buffer):
-# 		game_area_buffer = []
-#
-# 		for game_frame in frame_buffer.frames:
-# 			game_area = serpent.cv.extract_region_from_image(
-# 			game_frame.grayscale_frame,
-# 			self.game.screen_regions["GAME_REGION"]
-# 			)
-#
-# 			frame = FrameTransformer.rescale(game_area, 0.25)
-# 			game_area_buffer.append(frame)
-#
-# 		return game_area_buffer
-#
-# 	def handle_play(self, game_frame):
-# 		if self.first_run:
-# 			self.current_attempts += 1
-# 			self.first_run = False
-# 			return None
-#
-# 		self.printer.add("")
-# 		self.printer.add("BombermanAI")
-# 		self.printer.add("Reinforcement Learning: Training a PPO Agent")
-# 		self.printer.add("")
-# 		self.printer.add(f"Stage Started At: {self.started_at}")
-# 		self.printer.add(f"Current Run: #{self.current_attempts}")
-# 		self.printer.add("")
-#
-# 		inputs = [KeyboardKey.KEY_UP,
-# 			KeyboardKey.KEY_DOWN,
-# 			KeyboardKey.KEY_LEFT,
-# 			KeyboardKey.KEY_RIGHT,
-# 			KeyboardKey.KEY_SPACE]
-#
-# 		#game over?
-# 		sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
-#
-# 		sprite_locator = SpriteLocator()
-# 		locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-# 		print(locationGO)
-#
-# 		#won game?
-# 		sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
-# 		sprite_locator = SpriteLocator()
-# 		locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-# 		print(locationWO)
-#
-# 		print(type(game_frame))
-#
-# 		if(locationGO!= None or locationWO!= None):
-# 			#enter clic in both cases
-# 			self.input_controller.tap_key(KeyboardKey.KEY_ENTER)
-# 		else:
-# 			game_frame_buffer = FrameGrabber.get_frames([0, 1, 2, 3], frame_type="PIPELINE")
-# 			game_frame_buffer = self.extract_game_area(game_frame_buffer)
-# 			action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
-#
-# 			print(action, label, value)
-# 			self.input_controller.tap_key(value)
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
@@ -178,12 +39,6 @@ class SerpentBombermanGameAgent(GameAgent):
         self.frame_handler_setups['PLAY'] = self.setup_play
 
         self.value = None
-        #print('Sprites')
-        #print(type(self.game.sprites))
-        #print('game')
-        #print(self.game)
-        #print('game type')
-        #print(type(self.game))
 
         self.spriteGO = self.game.sprites.get('SPRITE_GAME_OVER')
         self.spriteWO = self.game.sprites.get('SPRITE_GAME_WON')
@@ -195,15 +50,7 @@ class SerpentBombermanGameAgent(GameAgent):
 
     def setup_play(self):
 
-        game_inputs = {
-            "MoveUp": [KeyboardKey.KEY_UP],
-            "MoveDown": [KeyboardKey.KEY_DOWN],
-            "MoveLeft": [KeyboardKey.KEY_LEFT],
-            "MoveRight": [KeyboardKey.KEY_RIGHT],
-            "LeaveBomb": [KeyboardKey.KEY_SPACE],
-            "None": [0]
-        }
-        self.game_inputs = game_inputs
+
         self.game_actions = [
             KeyboardKey.KEY_UP,
             KeyboardKey.KEY_DOWN,
@@ -212,10 +59,7 @@ class SerpentBombermanGameAgent(GameAgent):
             KeyboardKey.KEY_SPACE,
             None]
 
-        ##120, 137
         self.dqn_agent = KerasAgent(shape=(104, 136, 1), action_size=len(self.game_actions))
-        #load model
-        #self.ppo_agent.restore_model()
 
         self.first_run = True
 
@@ -259,51 +103,7 @@ class SerpentBombermanGameAgent(GameAgent):
             new_matrix.append(line)
         return np.array(new_matrix)
 
-
-    def update_game_state(self, frame):
-        game_area = \
-                serpent.cv.extract_region_from_image(frame,self.game.screen_regions['GAME_REGION'])
-        #game ...
-        # 0,0
-        # 32,32
-        game_squares = [[None for j in range(0,11)] for i in range(0,15)]
-        const_offset = 8
-        const = 32
-        #game variables
-        self.gamestate.bombs = [] #{x, y}
-        self.gamestate.enemies = [] #{x,y}
-        #force girl to die if not found
-        girl_found = False
-        for i in range(0,15):
-            for j in range(0, 11):
-                izq = ((j+1)*const - const_offset, (i+1)*const - const_offset)
-                der = ((j+2)*const + const_offset, (i+2)*const + const_offset)
-                reg = (izq[0], izq[1], der[0], der[1])
-                square =  serpent.cv.extract_region_from_image(game_area, reg)
-                square = self.convert_to_rgba(square)
-                sprite_to_locate = Sprite("QUERY", image_data=square[..., np.newaxis])
-                sprite = self.sprite_identifier.identify(sprite_to_locate, mode="SIGNATURE_COLORS")
-                game_squares[i][j] = sprite
-                if("SPRITE_BETTY" in sprite):
-                    self.girl = {"x": i, "y": j}
-                    girl_found = True
-                elif("SPRITE_GEORGE" in sprite):
-                    self.gamestate.enemies.append({"x": i, "y": j})
-                elif("SPRITE_BOMB" in sprite):
-                    self.gamestate.bombs.append({"x": i, "y": j})
-        self.gamestate.girl_alive = girl_found
-        self.gamestate.done = not girl_found
-        return game_squares
-
     def handle_play(self, game_frame):
-        #self.printer.add("")
-        #self.printer.add("BombermanAI")
-        #self.printer.add("Reinforcement Learning: Training a PPO Agent")
-        #self.printer.add("")
-        #self.printer.add(f"Stage Started At: {self.started_at}")
-        #self.printer.add(f"Current Run: #{self.current_attempts}")
-        #self.printer.add("")
-        #self.check_game_state(game_frame)
 
         #####################CHECK STATE###########################
         #game over?
@@ -311,14 +111,12 @@ class SerpentBombermanGameAgent(GameAgent):
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
         sprite_locator = SpriteLocator()
         locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print("Location Game over:",locationGO)
 
         #won game?
         locationWO = None
         sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
         sprite_locator = SpriteLocator()
         locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        #print("Location Game won:",locationWO)
 
         self.gamestate.victory = locationWO!= None
         self.gamestate.lose = locationGO!=None
@@ -362,9 +160,6 @@ class SerpentBombermanGameAgent(GameAgent):
             #update time
             self.gamestate.updateTime()
 
-            #print(np.stack(game_frame_buffer,axis=1).shape)
-            #print(game_frame_buffer.shape)
-            #print(state.shape)
             if(not (self.prev_state is None) and not (self.prev_action is None)):
                 self.dqn_agent.remember(self.prev_state, self.prev_action, self.prev_reward, state, False)
 
@@ -414,23 +209,17 @@ class SerpentBombermanGameAgent(GameAgent):
             sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
             sprite_locator = SpriteLocator()
             locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-            #print("Location Game over:",locationGO)
 
             #won game?
             locationWO = None
             sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
             sprite_locator = SpriteLocator()
             locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-            #print("Location Game won:",locationWO)
 
             self.gamestate.lose = locationGO!=None
             self.gamestate.victory = locationWO!= None
             self.gamestate.girl_alive = (locationGO== None and locationWO== None)
             self.gamestate.done =  not self.gamestate.girl_alive
-
-            print(f"Is alive? {self.gamestate.girl_alive}")
-            print(f"Game over? {self.gamestate.lose}")
-            print(f"Won? {self.gamestate.victory}")
 
             ###################REWARD#########################################
 
@@ -442,35 +231,6 @@ class SerpentBombermanGameAgent(GameAgent):
             self.prev_reward = reward
 
             if(action):
-                self.input_controller.tap_key(action, 0.15 if action_index < 4 else 0.01)
+                self.input_controller.tap_key(action, 0.2 if action_index < 4 else 0.01)
             print(f"Action: {self.gamestate.game_inputs[action_index]}, reward: {reward}, total_reward: {self.total_reward}")
-            #action, label, value = self.ppo_agent.generate_action(game_frame_buffer)
-            #print(action, label, value)
-            #key, value = random.choice(list(self.game_inputs.items()))
-            #if(value[0]):
-            #    self.input_controller.tap_key(value[0])
-        #game_squares = self.extract_game_squares(game_frame.frame)
 
-
-
-    def check_game_state(self, game_frame):
-        #game over?
-        locationGO = None
-        sprite_to_locate = Sprite("QUERY", image_data=self.spriteGO.image_data)
-        sprite_locator = SpriteLocator()
-        locationGO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame)
-        print("Location Game over:",locationGO)
-        #won game?
-        locationWO = None
-        sprite_to_locate = Sprite("QUERY", image_data=self.spriteWO.image_data)
-        sprite_locator = SpriteLocator()
-        locationWO = sprite_locator.locate(sprite=sprite_to_locate, game_frame=game_frame.frames)
-        print("Location Game won:",locationWO)
-
-        self.gamestate.girl_alive = (locationGO== None and locationWO== None)
-        self.gamestate.done =  not self.gamestate.girl_alive
-        self.gamestate.victory = locationWO!= None
-
-        print(f"Is alive? {self.gamestate.girl_alive}")
-        print(f"Game over? {self.gamestate.lose}")
-        print(f"Won? {self.gamestate.victory}")

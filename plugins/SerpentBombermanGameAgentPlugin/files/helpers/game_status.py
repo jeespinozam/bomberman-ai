@@ -62,7 +62,7 @@ class Game:
             distance = self.getDistanceNormalized(bomb, self.girl)
             if distance < self.MAX_DISTANCE:
                 reward -= distance
-            else
+            else:
                 reward += distance
 
         if(action == 4):
