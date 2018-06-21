@@ -19,3 +19,7 @@ class TerminalPrinter:
         clear_terminal()
         print("\n".join(self.lines))
         self.clear()
+    def save_file(self):
+        with open('training.csv', 'a') as f:
+            f.write("\n".join(self.lines))
+        self.clear()

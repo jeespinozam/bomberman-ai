@@ -3,6 +3,7 @@ from tensorforce.agents import PPOAgent
 from serpent.utilities import SerpentError
 
 import numpy as np
+import os
 
 # This file is borrowed from SerpentAIsaacGameAgentPlugin:
 # https://github.com/SerpentAI/SerpentAIsaacGameAgentPlugin/blob/master/files/helpers/ppo.py

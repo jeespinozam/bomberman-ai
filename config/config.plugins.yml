@@ -1,4 +1,4 @@
 SerpentTestGameAgentPlugin:
   frame_handler: PLAY
-SerpentTestGamePlugin:
-  fps: 2
+SerpentBombermanGamePlugin:
+  fps: 10
